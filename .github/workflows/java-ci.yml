@@ -1,0 +1,44 @@
+
+name: ImpactFlow Java CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.service }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - change-analysis-service
+          - config-server
+          - eureka-server
+          - report-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: ${{ matrix.service }}/pom.xml
+
+      - name: Build and test service
+        working-directory: ${{ matrix.service }}
+        run: mvn --batch-mode --no-transfer-progress clean verify
